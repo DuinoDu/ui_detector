@@ -65,6 +65,8 @@ import sys
 sys.path.append("../tools")
 import demo
 import time
+import cv2.cv as cv
+
 class MainWindow(QtGui.QMainWindow):
     def __init__(self):
         """ Constructor initializes a default value for the brightness, creates
@@ -78,11 +80,14 @@ class MainWindow(QtGui.QMainWindow):
         self.path = ''
         self.fileName = []
         self.directoryFile = ''
+
+        self.step = 0
+
         self.labelSize = QtCore.QSize(256,256)
         self.width = 600
         self.height = 800
         self.resize(800, 600)
-
+        
         self.setWindowTitle("Detection")
 
         self.textEdit = QtGui.QTextEdit()
@@ -106,6 +111,11 @@ class MainWindow(QtGui.QMainWindow):
         self.quitButton = QtGui.QPushButton("Quit")
         self.quitButton.setMinimumSize(64, 32)
 
+        self.pbar = QtGui.QProgressBar(self)
+        #self.pbar.setGeometry(50, 50, 200, 25)
+        self.pbar.setMinimumSize(20,32)
+        
+
         self.openButton.clicked.connect(self.chooseFile)
         self.detectButton.clicked.connect(self.detect)
         #self.saveButton.clicked.connect(self.saveImage)
@@ -121,8 +131,11 @@ class MainWindow(QtGui.QMainWindow):
         #grid.addWidget(self.imageLabel, 0, 0)
         grid.addWidget(self.openButton, 2, 0)
         grid.addWidget(self.detectButton,2, 1)
-       # grid.addWidget(self.saveButton, 2, 0)
-        grid.addWidget(self.quitButton,2,2) 
+        #grid.addWidget(self.saveButton, 2, 0)
+        grid.addWidget(self.quitButton, 2, 2) 
+        grid.addWidget(self.pbar, 3, 1)
+
+
         self.setCentralWidget(frame)
 
     def chooseFile(self):
@@ -162,10 +175,35 @@ class MainWindow(QtGui.QMainWindow):
                     "The selected file could not be opened.",
                     QtGui.QMessageBox.Cancel, QtGui.QMessageBox.NoButton,
                     QtGui.QMessageBox.NoButton)
+    
 
+    def progressbar():
+        pass
+        '''
+
+        if self.typeComboBox.currentIndex()==0:    
+            self.pbar.setMinimum(0)    
+            self.pbar.setMaximum(num)
+        
+        for i in range(num):
+            self.pbar.setValue(i)
+        '''
     def detect(self):
         import os
+       
+        num = len(self.fileName)
+        print(num)
+        print('+++++++++++++++++++++++++++++++++++')
+        
+        self.pbar.setMinimum(0)    
+        self.pbar.setMaximum(num)
+
+
         for name in self.fileName:
+            
+            self.step += 1
+            self.pbar.setValue(self.step)
+
             imageFile = os.path.join(self.directoryFile,name)
             self.path = imageFile
             result = demo.detect(self.net, self.path)
@@ -179,6 +217,8 @@ class MainWindow(QtGui.QMainWindow):
             resultImg = QtGui.QImage(result.data, width, height, bytesPerLine, QtGui.QImage.Format_RGB888)
             self.scaledImage = resultImg.scaled(self.width, self.height, QtCore.Qt.KeepAspectRatio)
             self.imageLabel.setPixmap(QtGui.QPixmap.fromImage(self.scaledImage))
+            #time.sleep(20)
+            cv.WaitKey(1000)
             time.sleep(3)
 
     def saveImage(self,imagename):
