@@ -112,9 +112,10 @@ class MainWindow(QtGui.QMainWindow):
         self.quitButton.setMinimumSize(64, 32)
 
         self.pbar = QtGui.QProgressBar(self)
-        #self.pbar.setGeometry(50, 50, 200, 25)
-        self.pbar.setMinimumSize(20,32)
-        
+        self.pbar.setMinimumSize(64,32)
+
+        self.pbar_label = QtGui.QLabel('ProgressBar')
+        #self.pbar.resize(20,20)
 
         self.openButton.clicked.connect(self.chooseFile)
         self.detectButton.clicked.connect(self.detect)
@@ -133,7 +134,8 @@ class MainWindow(QtGui.QMainWindow):
         grid.addWidget(self.detectButton,2, 1)
         #grid.addWidget(self.saveButton, 2, 0)
         grid.addWidget(self.quitButton, 2, 2) 
-        grid.addWidget(self.pbar, 3, 1)
+        grid.addWidget(self.pbar_label, 3, 0)
+        grid.addWidget(self.pbar, 3, 1, 1, 2)
 
 
         self.setCentralWidget(frame)
@@ -175,26 +177,12 @@ class MainWindow(QtGui.QMainWindow):
                     "The selected file could not be opened.",
                     QtGui.QMessageBox.Cancel, QtGui.QMessageBox.NoButton,
                     QtGui.QMessageBox.NoButton)
-    
 
-    def progressbar():
-        pass
-        '''
 
-        if self.typeComboBox.currentIndex()==0:    
-            self.pbar.setMinimum(0)    
-            self.pbar.setMaximum(num)
-        
-        for i in range(num):
-            self.pbar.setValue(i)
-        '''
     def detect(self):
         import os
        
         num = len(self.fileName)
-        print(num)
-        print('+++++++++++++++++++++++++++++++++++')
-        
         self.pbar.setMinimum(0)    
         self.pbar.setMaximum(num)
 
@@ -217,7 +205,6 @@ class MainWindow(QtGui.QMainWindow):
             resultImg = QtGui.QImage(result.data, width, height, bytesPerLine, QtGui.QImage.Format_RGB888)
             self.scaledImage = resultImg.scaled(self.width, self.height, QtCore.Qt.KeepAspectRatio)
             self.imageLabel.setPixmap(QtGui.QPixmap.fromImage(self.scaledImage))
-            #time.sleep(20)
             cv.WaitKey(1000)
             time.sleep(3)
 
