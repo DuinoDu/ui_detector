@@ -64,9 +64,8 @@ from PyQt4 import QtCore, QtGui
 import sys
 sys.path.append("../tools")
 import demo
-
+import time
 class MainWindow(QtGui.QMainWindow):
-
     def __init__(self):
         """ Constructor initializes a default value for the brightness, creates
             the main menu entries, and constructs a central widget that contains
@@ -77,12 +76,17 @@ class MainWindow(QtGui.QMainWindow):
 
         self.scaledImage = QtGui.QImage()
         self.path = ''
-        self.labelSize = QtCore.QSize(256, 256)
-        self.width = 800
-        self.height = 600
+        self.fileName = []
+        self.directoryFile = ''
+        self.labelSize = QtCore.QSize(256,256)
+        self.width = 600
+        self.height = 800
         self.resize(800, 600)
 
         self.setWindowTitle("Detection")
+
+        self.textEdit = QtGui.QTextEdit()
+        self.setCentralWidget(self.textEdit)
 
         self.imageLabel = QtGui.QLabel()
         self.imageLabel.setFrameShadow(QtGui.QFrame.Sunken)
@@ -90,29 +94,35 @@ class MainWindow(QtGui.QMainWindow):
         self.imageLabel.setMinimumSize(self.labelSize)
         
         self.openButton = QtGui.QPushButton("Open")
-        self.openButton.setMinimumSize(32, 32)
+        self.openButton.setMinimumSize(64, 32)
+        #self.openButton.setMaximumSize(100,32)
         
         self.detectButton = QtGui.QPushButton("Detect")
-        self.detectButton.setMinimumSize(32, 32)
+        self.detectButton.setMinimumSize(64,32)
 
-        self.saveButton = QtGui.QPushButton("Save")
-        self.saveButton.setMinimumSize(32, 32)
+        #self.saveButton = QtGui.QPushButton("Save")
+        #self.saveButton.setMinimumSize(32, 32)
 
         self.quitButton = QtGui.QPushButton("Quit")
-        self.quitButton.setMinimumSize(32, 32)
+        self.quitButton.setMinimumSize(64, 32)
 
         self.openButton.clicked.connect(self.chooseFile)
         self.detectButton.clicked.connect(self.detect)
-        self.saveButton.clicked.connect(self.saveImage)
+        #self.saveButton.clicked.connect(self.saveImage)
         self.quitButton.clicked.connect(self.close)
 
         frame = QtGui.QFrame(self)
         grid = QtGui.QGridLayout(frame)
-        grid.addWidget(self.imageLabel, 0, 0, 1, 2)
-        grid.addWidget(self.openButton, 1, 0)
-        grid.addWidget(self.detectButton, 1, 1)
-        grid.addWidget(self.saveButton, 2, 0, 1, 1)
-        grid.addWidget(self.quitButton, 2, 1, 1, 1)
+        grid.setSpacing(10)
+
+        
+        grid.addWidget(self.textEdit, 0,0,1,0)
+        grid.addWidget(self.imageLabel, 0, 1, 1,2)
+        #grid.addWidget(self.imageLabel, 0, 0)
+        grid.addWidget(self.openButton, 2, 0)
+        grid.addWidget(self.detectButton,2, 1)
+       # grid.addWidget(self.saveButton, 2, 0)
+        grid.addWidget(self.quitButton,2,2) 
         self.setCentralWidget(frame)
 
     def chooseFile(self):
@@ -120,13 +130,27 @@ class MainWindow(QtGui.QMainWindow):
             If a file is selected, the appropriate function is called to process
             and display it.
         """
-        imageFile = QtGui.QFileDialog.getOpenFileName(self,
-                "Choose an image file to open", self.path, "Images (*.*)")
 
-        if imageFile != '':
-            self.openImageFile(imageFile)
-            self.path = imageFile
-
+        #imageFile = QtGui.QFileDialog.getOpenFileName(self,
+        #      "Choose an image file to open", self.path, "Images (*.*)")
+        
+        #print(imageFile)
+        directoryFile = QtGui.QFileDialog.getExistingDirectory()
+        #print(directoryFile)
+        
+        import os
+        FileName = []
+        FileName = os.listdir(directoryFile)
+        self.fileName = FileName
+        self.directoryFile = directoryFile
+        filename = []
+        for name in FileName:
+            filename.append(name)
+            filename.append('\n')
+        str = ('').join(filename)
+        self.textEdit.setText(str)
+        print(str)
+            
     def openImageFile(self, imageFile):
         originalImage = QtGui.QImage()
         if originalImage.load(imageFile):
@@ -140,32 +164,39 @@ class MainWindow(QtGui.QMainWindow):
                     QtGui.QMessageBox.NoButton)
 
     def detect(self):
-        result = demo.detect(self.net, self.path)
+        import os
+        for name in self.fileName:
+            imageFile = os.path.join(self.directoryFile,name)
+            self.path = imageFile
+            result = demo.detect(self.net, self.path)
         #bgr = result
         #bgr[:,:,1] = result[:,:,0]
         #bgr[:,:,2] = result[:,:,1]
         #bgr[:,:,0] = result[:,:,2]
         #result = bgr
-        height, width, channel = result.shape
-        bytesPerLine = 3 * width
-        resultImg = QtGui.QImage(result.data, width, height, bytesPerLine, QtGui.QImage.Format_RGB888)
-        self.scaledImage = resultImg.scaled(self.width, self.height, QtCore.Qt.KeepAspectRatio)
-        self.imageLabel.setPixmap(QtGui.QPixmap.fromImage(self.scaledImage))
+            height, width, channel = result.shape
+            bytesPerLine = 3 * width
+            resultImg = QtGui.QImage(result.data, width, height, bytesPerLine, QtGui.QImage.Format_RGB888)
+            self.scaledImage = resultImg.scaled(self.width, self.height, QtCore.Qt.KeepAspectRatio)
+            self.imageLabel.setPixmap(QtGui.QPixmap.fromImage(self.scaledImage))
+            time.sleep(3)
 
-
-    def saveImage(self):
+    def saveImage(self,imagename):
         """ Provides a dialog window to allow the user to save the image file.
         """
-        imageFile = QtGui.QFileDialog.getSaveFileName(self,
-                "Choose a filename to save the image", "", "Images (*.png)")
-
-        info = QtCore.QFileInfo(imageFile)
-
-        if info.baseName() != '':
-            newImageFile = QtCore.QFileInfo(info.absoluteDir(),
-                    info.baseName() + '.png').absoluteFilePath()
-
-            if not self.finalWidget.pixmap().save(newImageFile, 'PNG'):
+        #imageFile = QtGui.QFileDialog.getSaveFileName(self,
+        #        "Choose a filename to save the image", "", "Images (*.png)")
+        #print(imageFile)
+        #info = QtCore.QFileInfo(imageFile)
+        info = imagename
+        #if info.baseName() != '':
+        if info !='':
+           # print(info)
+           # newImageFile = QtCore.QFileInfo(info.absoluteDir(),
+            #        info+'detected' + '.png').absoluteFilePath()
+            newImageFile = '/home/fangfang/py-faster-rcnn/insulator/'+info
+            print(newImageFile)
+            if not self.imageLabel.pixmap().save(newImageFile, 'PNG'):
                 QtGui.QMessageBox.warning(self, "Cannot save file",
                         "The file could not be saved.",
                         QtGui.QMessageBox.Cancel, QtGui.QMessageBox.NoButton,
