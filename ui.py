@@ -62,10 +62,9 @@ sip.setapi('QString', 2)
 
 from PyQt4 import QtCore, QtGui
 import sys
-sys.path.append("../tools")
-import demo
 import time
-import cv2.cv as cv
+import cv2
+import demo
 
 class MainWindow(QtGui.QMainWindow):
     def __init__(self):
@@ -205,7 +204,7 @@ class MainWindow(QtGui.QMainWindow):
             resultImg = QtGui.QImage(result.data, width, height, bytesPerLine, QtGui.QImage.Format_RGB888)
             self.scaledImage = resultImg.scaled(self.width, self.height, QtCore.Qt.KeepAspectRatio)
             self.imageLabel.setPixmap(QtGui.QPixmap.fromImage(self.scaledImage))
-            cv.WaitKey(1000)
+            cv2.waitKey(1000)
             time.sleep(3)
 
     def saveImage(self,imagename):
