@@ -205,7 +205,7 @@ class MainWindow(QtGui.QMainWindow):
             self.scaledImage = resultImg.scaled(self.width, self.height, QtCore.Qt.KeepAspectRatio)
             self.imageLabel.setPixmap(QtGui.QPixmap.fromImage(self.scaledImage))
             cv2.waitKey(1000)
-            time.sleep(3)
+            #time.sleep(3)
 
     def saveImage(self,imagename):
         """ Provides a dialog window to allow the user to save the image file.

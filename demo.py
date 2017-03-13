@@ -24,24 +24,27 @@ import scipy.io as sio
 import caffe, os, sys, cv2
 import argparse
 
-CLASSES = ('__background__',
-           'aeroplane', 'bicycle', 'bird', 'boat',
-           'bottle', 'bus', 'car', 'cat', 'chair',
-           'cow', 'diningtable', 'dog', 'horse',
-           'motorbike', 'person', 'pottedplant',
-           'sheep', 'sofa', 'train', 'tvmonitor')
+#CLASSES = ('__background__',
+#           'aeroplane', 'bicycle', 'bird', 'boat',
+#           'bottle', 'bus', 'car', 'cat', 'chair',
+#           'cow', 'diningtable', 'dog', 'horse',
+#           'motorbike', 'person', 'pottedplant',
+#           'sheep', 'sofa', 'train', 'tvmonitor')
+
+CLASSES = ('__background__', 'insulator')
 
 NETS = {'vgg16': ('VGG16',
                   'VGG16_faster_rcnn_final.caffemodel'),
         'zf': ('ZF',
                   'ZF_faster_rcnn_final.caffemodel')}
 
+MODELS = {'vgg16': (), 
+          'zf': ('ZF', 'faster_rcnn_test.pt')}
 
 def init():
     cfg.TEST.HAS_RPN = True  # Use RPN for proposals
-    demo_net = 'vgg16' # zf
-    modeltxt = os.path.join(cfg.MODELS_DIR, NETS[demo_net][0], 'faster_rcnn_alt_opt', 'faster_rcnn_test.pt')
-    modelbin = os.path.join(cfg.DATA_DIR, 'faster_rcnn_models', NETS[demo_net][1])
+    modeltxt = os.path.join(cfg.DATA_DIR, 'insulator_vertical', MODELS['zf'][1])
+    modelbin = os.path.join(cfg.DATA_DIR, 'insulator_vertical', NETS['zf'][1])
     if not os.path.isfile(modelbin):
         raise IOError(('{:s} not found.\nDid you run ./data/script/'
                        'fetch_faster_rcnn_models.sh?').format(modelbin))
@@ -74,6 +77,7 @@ def detect(net, imgPath):
     NMS_THRESH = 0.3
     for cls_ind, cls in enumerate(CLASSES[1:]):
         cls_ind += 1 # because we skipped background
+
         cls_boxes = boxes[:, 4*cls_ind:4*(cls_ind + 1)]
         cls_scores = scores[:, cls_ind]
         dets = np.hstack((cls_boxes,
