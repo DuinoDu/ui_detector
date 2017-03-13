@@ -155,6 +155,7 @@ class MainWindow(QtGui.QMainWindow):
         import os
         FileName = []
         FileName = os.listdir(directoryFile)
+        FileName = [x for x in FileName if x[-3:].lower() in ['jpg', 'png']]
         self.fileName = FileName
         self.directoryFile = directoryFile
         filename = []
@@ -176,7 +177,6 @@ class MainWindow(QtGui.QMainWindow):
                     "The selected file could not be opened.",
                     QtGui.QMessageBox.Cancel, QtGui.QMessageBox.NoButton,
                     QtGui.QMessageBox.NoButton)
-
 
     def detect(self):
         import os
