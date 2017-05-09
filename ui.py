@@ -64,7 +64,7 @@ from PyQt4 import QtCore, QtGui
 import sys
 import time
 import cv2
-import demo
+import demo_tf as demo
 
 class MainWindow(QtGui.QMainWindow):
     def __init__(self):
