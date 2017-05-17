@@ -14,34 +14,33 @@ See README.md for installation instructions before running.
 """
 
 
-import _init_paths
+import _init_paths_tf
 from fast_rcnn.test import test_net
 from fast_rcnn.config import cfg, cfg_from_file
 from datasets.factory import get_imdb
 from networks.factory import get_network
+from fast_rcnn.nms_wrapper import nms
 import pprint
 import tensorflow as tf
 import time, os, sys, fire, cv2
 from utils.timer import Timer
 from fast_rcnn.test import im_detect
+
 import numpy as np
 import cPickle
 
 
-CLASSES = ('__background__', 'insulator')
+CLASSES = ('__background__', 'tower', 'insulator', 'hammer', 'nest', 'text')
 
-NETS = {'vgg16': ('VGG16',
-                  'VGG16_faster_rcnn_final.caffemodel'),
-        'zf': ('ZF',
-                  'ZF_faster_rcnn_final.caffemodel')}
+COLOR = {'tower': (0, 255, 0), 'insulator':(0, 0, 255), 'nest': (255, 0, 255)}
 
-MODELS = {'vgg16': (), 
-          'zf': ('ZF', 'faster_rcnn_test.pt')}
+sess = tf.Session(config=tf.ConfigProto(allow_soft_placement=True))
 
 def init( model= os.path.join(cfg.ROOT_DIR, "output/faster_rcnn_end2end/result/insulator_2016_trainval_exp1/VGGnet_fast_rcnn_iter_70000.ckpt"),
         imdb_name='insulator_2016_test', 
         net_name='VGGnet_test' ):
 
+    global sess
     imdb = get_imdb(imdb_name)
     net = get_network(net_name, imdb.num_classes)
     
@@ -53,35 +52,42 @@ def init( model= os.path.join(cfg.ROOT_DIR, "output/faster_rcnn_end2end/result/i
     cfg.GPU_ID = 0
     
     # load weights
-    #sess = tf.Session(config=tf.ConfigProto(allow_soft_placement=True))
-    #saver = tf.train.Saver()
-    #saver.restore(sess, model)
-    #print ('Loading model weights from {:s}').format(model)
-    saver = tf.train.Saver(write_version=tf.train.SaverDef.V1)
-    saver.restore(sess, args.model)
+    saver = tf.train.Saver()
+    saver.restore(sess, model)
+    print ('Loading model weights from {:s}').format(model)
 
 
     # Warmup on a dummy image
     im = 128 * np.ones((300, 300, 3), dtype=np.uint8)
     for i in xrange(2):
-        _, _= im_detect(sess, net, im)
+        _, _, _= im_detect(sess, net, im)
     return net
 
 def detect(net, imgPath):
+    global sess
     im = cv2.imread(imgPath)
-    # Detect
     timer = Timer()
     timer.tic()
-    scores, boxes = im_detect(net, im)
+
+    scores, boxes, _ = im_detect(sess, net, im)
     timer.toc()
     print ('Detection took {:.3f}s for '
-           '{:d} object proposals').format(timer.total_time, boxes.shape[0])
+           '{:d} object proposals, {}').format(timer.total_time, boxes.shape[0], imgPath)
 
     # Visualize detections for each class
     CONF_THRESH = 0.8
     NMS_THRESH = 0.3
     for cls_ind, cls in enumerate(CLASSES[1:]):
         cls_ind += 1 # because we skipped background
+
+        if cls == 'text':
+            continue
+
+        if cls == 'hammer':
+            continue
+
+        if cls == 'tower':
+            continue
 
         cls_boxes = boxes[:, 4*cls_ind:4*(cls_ind + 1)]
         cls_scores = scores[:, cls_ind]
@@ -94,5 +100,5 @@ def detect(net, imgPath):
         inds = np.where(dets[:, -1] >= thresh)[0]
         for i in inds:
             bbox = dets[i, :4]
-            cv2.rectangle(im, (bbox[0], bbox[1]), (bbox[2], bbox[3]), (0, 255, 0), 5)
+            cv2.rectangle(im, (bbox[0], bbox[1]), (bbox[2], bbox[3]), COLOR[cls], 3)
     return im

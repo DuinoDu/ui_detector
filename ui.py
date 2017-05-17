@@ -180,11 +180,10 @@ class MainWindow(QtGui.QMainWindow):
 
     def detect(self):
         import os
-       
+
         num = len(self.fileName)
         self.pbar.setMinimum(0)    
         self.pbar.setMaximum(num)
-
 
         for name in self.fileName:
             
@@ -193,6 +192,7 @@ class MainWindow(QtGui.QMainWindow):
 
             imageFile = os.path.join(self.directoryFile,name)
             self.path = imageFile
+
             result = demo.detect(self.net, self.path)
         #bgr = result
         #bgr[:,:,1] = result[:,:,0]
@@ -204,8 +204,8 @@ class MainWindow(QtGui.QMainWindow):
             resultImg = QtGui.QImage(result.data, width, height, bytesPerLine, QtGui.QImage.Format_RGB888)
             self.scaledImage = resultImg.scaled(self.width, self.height, QtCore.Qt.KeepAspectRatio)
             self.imageLabel.setPixmap(QtGui.QPixmap.fromImage(self.scaledImage))
-            cv2.waitKey(1000)
-            #time.sleep(3)
+            #cv2.waitKey(5000)
+            time.sleep(2)
 
     def saveImage(self,imagename):
         """ Provides a dialog window to allow the user to save the image file.
