@@ -34,7 +34,9 @@ CLASSES = ('__background__', 'tower', 'insulator', 'hammer', 'nest', 'text')
 
 COLOR = {'tower': (0, 255, 0), 'insulator':(0, 0, 255), 'nest': (255, 0, 255)}
 
-sess = tf.Session(config=tf.ConfigProto(allow_soft_placement=True))
+config = tf.ConfigProto(allow_soft_placement=True)
+config.gpu_options.per_process_gpu_memory_fraction = 0.5
+sess = tf.Session(config=config)
 
 def init( model= os.path.join(cfg.ROOT_DIR, "output/faster_rcnn_end2end/result/insulator_2016_trainval_exp1/VGGnet_fast_rcnn_iter_70000.ckpt"),
         imdb_name='insulator_2016_test', 

@@ -61,7 +61,7 @@ import sip
 sip.setapi('QString', 2)
 
 from PyQt4 import QtCore, QtGui
-import sys
+import sys, os
 import time
 import cv2
 import demo_tf as demo
@@ -117,7 +117,8 @@ class MainWindow(QtGui.QMainWindow):
         #self.pbar.resize(20,20)
 
         self.openButton.clicked.connect(self.chooseFile)
-        self.detectButton.clicked.connect(self.detect)
+        #self.detectButton.clicked.connect(self.detect)
+        self.detectButton.clicked.connect(self.detect_one)
         #self.saveButton.clicked.connect(self.saveImage)
         self.quitButton.clicked.connect(self.close)
 
@@ -152,7 +153,6 @@ class MainWindow(QtGui.QMainWindow):
         directoryFile = QtGui.QFileDialog.getExistingDirectory()
         #print(directoryFile)
         
-        import os
         FileName = []
         FileName = os.listdir(directoryFile)
         FileName = [x for x in FileName if x[-3:].lower() in ['jpg', 'png']]
@@ -165,7 +165,12 @@ class MainWindow(QtGui.QMainWindow):
         str = ('').join(filename)
         self.textEdit.setText(str)
         print(str)
-            
+
+        self.step = 0
+        self.pbar.setMinimum(0)    
+        self.pbar.setMaximum(len(self.fileName))
+        self.phase = "show"
+
     def openImageFile(self, imageFile):
         originalImage = QtGui.QImage()
         if originalImage.load(imageFile):
@@ -194,11 +199,6 @@ class MainWindow(QtGui.QMainWindow):
             self.path = imageFile
 
             result = demo.detect(self.net, self.path)
-        #bgr = result
-        #bgr[:,:,1] = result[:,:,0]
-        #bgr[:,:,2] = result[:,:,1]
-        #bgr[:,:,0] = result[:,:,2]
-        #result = bgr
             height, width, channel = result.shape
             bytesPerLine = 3 * width
             resultImg = QtGui.QImage(result.data, width, height, bytesPerLine, QtGui.QImage.Format_RGB888)
@@ -206,6 +206,33 @@ class MainWindow(QtGui.QMainWindow):
             self.imageLabel.setPixmap(QtGui.QPixmap.fromImage(self.scaledImage))
             #cv2.waitKey(5000)
             time.sleep(2)
+
+    def detect_one(self):
+
+        if self.step == len(self.fileName):
+            print "please choose new images"
+            return
+
+        if self.phase == "show":
+            self.openImageFile(os.path.join(self.directoryFile, self.fileName[self.step]))
+            self.phase = "display"
+
+        elif self.phase == "display":
+    
+            imageFile = os.path.join(self.directoryFile, self.fileName[self.step])
+            self.path = imageFile
+    
+            result = demo.detect(self.net, self.path)
+            height, width, channel = result.shape
+            bytesPerLine = 3 * width
+            resultImg = QtGui.QImage(result.data, width, height, bytesPerLine, QtGui.QImage.Format_RGB888)
+            self.scaledImage = resultImg.scaled(self.width, self.height, QtCore.Qt.KeepAspectRatio)
+            self.imageLabel.setPixmap(QtGui.QPixmap.fromImage(self.scaledImage))
+
+            self.phase = "show"
+            self.step += 1
+            self.pbar.setValue(self.step)
+
 
     def saveImage(self,imagename):
         """ Provides a dialog window to allow the user to save the image file.
