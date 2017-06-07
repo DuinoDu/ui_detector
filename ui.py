@@ -61,6 +61,8 @@ import sip
 sip.setapi('QString', 2)
 
 from PyQt4 import QtCore, QtGui
+from PyQt4.QtCore import QTimer
+
 import sys, os
 import time
 import cv2
@@ -117,8 +119,11 @@ class MainWindow(QtGui.QMainWindow):
         #self.pbar.resize(20,20)
 
         self.openButton.clicked.connect(self.chooseFile)
+
         #self.detectButton.clicked.connect(self.detect)
-        self.detectButton.clicked.connect(self.detect_one)
+        #self.detectButton.clicked.connect(self.detect_one)
+        self.detectButton.clicked.connect(self.begin_detect)
+
         #self.saveButton.clicked.connect(self.saveImage)
         self.quitButton.clicked.connect(self.close)
 
@@ -137,8 +142,11 @@ class MainWindow(QtGui.QMainWindow):
         grid.addWidget(self.pbar_label, 3, 0)
         grid.addWidget(self.pbar, 3, 1, 1, 2)
 
-
         self.setCentralWidget(frame)
+
+        self.timer = QTimer(self)
+        self.sum_delay = 2000
+        self.timer.timeout.connect(self.detect_one)
 
     def chooseFile(self):
         """ Provides a dialog window to allow the user to specify an image file.
@@ -207,6 +215,10 @@ class MainWindow(QtGui.QMainWindow):
             #cv2.waitKey(5000)
             time.sleep(2)
 
+
+    def begin_detect(self):
+        self.timer.start(self.sum_delay)
+
     def detect_one(self):
 
         if self.step == len(self.fileName):
@@ -232,7 +244,6 @@ class MainWindow(QtGui.QMainWindow):
             self.phase = "show"
             self.step += 1
             self.pbar.setValue(self.step)
-
 
     def saveImage(self,imagename):
         """ Provides a dialog window to allow the user to save the image file.
