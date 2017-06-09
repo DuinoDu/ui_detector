@@ -163,7 +163,7 @@ class MainWindow(QtGui.QMainWindow):
         
         FileName = []
         FileName = os.listdir(directoryFile)
-        FileName = [x for x in FileName if x[-3:].lower() in ['jpg', 'png']]
+        FileName = sorted([x for x in FileName if x[-3:].lower() in ['jpg', 'png']])
         self.fileName = FileName
         self.directoryFile = directoryFile
         filename = []
@@ -215,7 +215,6 @@ class MainWindow(QtGui.QMainWindow):
             #cv2.waitKey(5000)
             time.sleep(2)
 
-
     def begin_detect(self):
         self.timer.start(self.sum_delay)
 
@@ -223,6 +222,7 @@ class MainWindow(QtGui.QMainWindow):
 
         if self.step == len(self.fileName):
             print "please choose new images"
+            self.timer.stop()
             return
 
         if self.phase == "show":
