@@ -1,4 +1,4 @@
-# Insulator
+# ui_detector
 
 # Requirement
 1. [sip](https://pypi.python.org/pypi/SIP)
